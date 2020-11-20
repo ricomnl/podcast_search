@@ -37,7 +37,7 @@ def main():
     # Load data and models
     data = read_data()
 
-    index_selected = st.sidebar.multiselect('Select index', ["information_retrieval", "similar_sentences", "similar_questions"], "similar_questions")
+    index_selected = st.sidebar.multiselect('Select index', ["information_retrieval", "similar_sentences", "similar_questions"], "similar_sentences")
     model_selected = {
         "information_retrieval": "distilroberta-base-msmarco-v2",
         "similar_sentences": "roberta-large-nli-stsb-mean-tokens",
