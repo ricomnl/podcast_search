@@ -3,4 +3,5 @@ sentence-transformers
 pandas
 faiss-cpu
 streamlit
-torch1.7.1+cpu
+--find-links https://download.pytorch.org/whl/torch_stable.html
+torch==1.7.1+cpu
