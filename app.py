@@ -16,7 +16,7 @@ def read_data(data="data/lex_fridman_all_sentences_processed.parquet"):
 
 
 @st.cache(allow_output_mutation=True)
-def load_bert_model(name="roberta-large-nli-stsb-mean-tokens"):
+def load_bert_model(name="distilbert-base-nli-stsb-mean-tokens"):
     """Instantiate a sentence-level DistilBERT model."""
     return SentenceTransformer(name)
 
@@ -25,7 +25,7 @@ def load_bert_model(name="roberta-large-nli-stsb-mean-tokens"):
 def load_faiss_index(path_to_faiss="models/lex_similar_sentences.index"):
     """Load and deserialize the Faiss index."""
 
-    data = urllib.request.urlopen("https://podcast-search-scify.s3.amazonaws.com/lex_similar_sentences.index")
+    data = urllib.request.urlopen("https://podcast-search-scify.s3.amazonaws.com/lex_similar_sentences_distil.index")
     reader = faiss.PyCallbackIOReader(data.read)
     index = faiss.read_index(reader)
 
@@ -53,10 +53,10 @@ def main():
     # index_name = index_selected[0]
 
 
-    model_name = "roberta-large-nli-stsb-mean-tokens"
+    model_name = "distilbert-base-nli-stsb-mean-tokens"
     index_name = "similar_sentences"
 
-    faiss_index = load_faiss_index(f"models/lex_{index_name}.index")
+    faiss_index = load_faiss_index()
     model = load_bert_model(model_name)
 
     st.title("Semantic Podcast Search Demo")
@@ -80,21 +80,9 @@ def main():
             indices = np.array([i for (i, obj) in enumerate(data) if "?" in obj["sentence"]])
         else:
             distance, indices = vector_search([user_input], model, faiss_index, num_results)
-        # Slice data on year
-#         frame = data[
-#             (data.year >= filter_year[0])
-#             & (data.year <= filter_year[1])
-#             & (data.citations >= filter_citations)
-#         ]
+
         # Get individual results
         for id_ in indices.flatten().tolist():
-#             if id_ in set(frame.id):
-#                 f = frame[(frame.id == id_)]
-#             else:
-#                 continue
-#             print()
-#             print(q["link"])
-#             print(q["sentence"])
             obj = (data[id_])
 
             if len(titles_selected) == 0 or obj["title"] in set(titles_selected):
