@@ -6,12 +6,13 @@ import numpy as np
 import streamlit as st
 from sentence_transformers import SentenceTransformer
 from vector_engine.utils import vector_search
-
+import urllib.request
 
 @st.cache(allow_output_mutation=True)
 def read_data(data="data/lex_fridman_all_sentences_processed.parquet"):
     """Read the data from S3."""
-    return pd.read_parquet(data).to_dict("records")
+    url = "https://podcast-search-scify.s3.amazonaws.com/lex_fridman_all_sentences_processed.parquet"
+    return pd.read_parquet(url).to_dict("records")
 
 
 @st.cache(allow_output_mutation=True)
@@ -23,7 +24,12 @@ def load_bert_model(name="roberta-large-nli-stsb-mean-tokens"):
 @st.cache(allow_output_mutation=True)
 def load_faiss_index(path_to_faiss="models/lex_similar_sentences.index"):
     """Load and deserialize the Faiss index."""
-    return faiss.read_index(path_to_faiss)
+
+    data = urllib.request.urlopen("https://podcast-search-scify.s3.amazonaws.com/lex_similar_sentences.index")
+    reader = faiss.PyCallbackIOReader(data.read)
+    index = faiss.read_index(reader)
+
+    return index
 
 
 def timestamp_to_seconds(timestamp):
@@ -37,17 +43,24 @@ def main():
     # Load data and models
     data = read_data()
 
-    index_selected = st.sidebar.multiselect('Select index', ["information_retrieval", "similar_sentences", "similar_questions"], "similar_sentences")
-    model_selected = {
-        "information_retrieval": "distilroberta-base-msmarco-v2",
-        "similar_sentences": "roberta-large-nli-stsb-mean-tokens",
-        "similar_questions": "distilbert-base-nli-stsb-quora-ranking",
-    }
+    # index_selected = st.sidebar.multiselect('Select index', ["information_retrieval", "similar_sentences", "similar_questions"], "similar_sentences")
+    # model_selected = {
+    #     "information_retrieval": "distilroberta-base-msmarco-v2",
+    #     "similar_sentences": "roberta-large-nli-stsb-mean-tokens",
+    #     "similar_questions": "distilbert-base-nli-stsb-quora-ranking",
+    # }
+    # model_name = model_selected[index_selected[0]]
+    # index_name = index_selected[0]
 
-    faiss_index = load_faiss_index(f"models/lex_{index_selected[0]}.index")
-    model = load_bert_model(model_selected[index_selected[0]])
+
+    model_name = "roberta-large-nli-stsb-mean-tokens"
+    index_name = "similar_sentences"
+
+    faiss_index = load_faiss_index(f"models/lex_{index_name}.index")
+    model = load_bert_model(model_name)
 
     st.title("Semantic Podcast Search Demo")
+    st.write("Search across all of the transcripts of Lex Fridman's AI Podcast. The underlying model will find the most similar sentences to your input.")
 
     # User search
     user_input = st.text_area("Search box", "what are the limits of deep learning?")
@@ -58,7 +71,7 @@ def main():
 #     filter_citations = st.sidebar.slider("Citations", 0, 250, 0)
     num_results = st.sidebar.slider("Number of search results", 10, 500, 50)
     titles = pd.DataFrame(data)["title"].unique()
-    titles_selected = st.sidebar.multiselect('Select titles', titles)
+    titles_selected = st.sidebar.multiselect('Filter by episode', titles)
 
     # Fetch results
     if user_input:
@@ -66,7 +79,7 @@ def main():
         if user_input == "?":
             indices = np.array([i for (i, obj) in enumerate(data) if "?" in obj["sentence"]])
         else:
-            distance, indices = vector_search([user_input], model, faiss_index, 1000)
+            distance, indices = vector_search([user_input], model, faiss_index, num_results)
         # Slice data on year
 #         frame = data[
 #             (data.year >= filter_year[0])
