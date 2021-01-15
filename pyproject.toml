@@ -6,13 +6,13 @@ authors = ["Rico Meinl <rmeinl97@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
-torch = "^1.7.0"
 transformers = "3.3.1"
 sentence-transformers = "^0.3.8"
 pandas = "^1.1.4"
 faiss-cpu = "^1.6.4"
 numpy = "^1.19.4"
 streamlit = "^0.70.0"
+torch = "1.7.0"
 
 [tool.poetry.dev-dependencies]
 
