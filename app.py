@@ -67,11 +67,15 @@ def main():
 
     # Filters
     st.sidebar.markdown("**Filters**")
+
 #     filter_year = st.sidebar.slider("Publication year", 2010, 2021, (2010, 2021), 1)
 #     filter_citations = st.sidebar.slider("Citations", 0, 250, 0)
     num_results = st.sidebar.slider("Number of search results", 10, 500, 50)
     titles = pd.DataFrame(data)["title"].unique()
     titles_selected = st.sidebar.multiselect('Filter by episode', titles)
+
+    st.sidebar.text("")
+    st.sidebar.write("Made by rico - [website](https://ricomeinl.com) - [twitter](https://twitter.com/rmeinl)")
 
     # Fetch results
     if user_input:
