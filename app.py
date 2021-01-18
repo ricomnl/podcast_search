@@ -1,3 +1,4 @@
+import os
 import datetime
 import faiss
 import pickle
@@ -7,6 +8,8 @@ import streamlit as st
 from sentence_transformers import SentenceTransformer
 from vector_engine.utils import vector_search
 import urllib.request
+
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 @st.cache(allow_output_mutation=True)
 def read_data(data="data/lex_fridman_all_sentences_processed.parquet"):
